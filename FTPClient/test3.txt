@@ -1,0 +1,3 @@
+Documentation for Python's standard library,
+along with tutorials and guides,
+are available online.
