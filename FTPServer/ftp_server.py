@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
+from datetime import datetime
 import os
 import socket
-from datetime import datetime
+import sys
 
-import conf
+BASE_PATH = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(BASE_PATH)
+
+import settings
 
 
 class SimpleServer(object):
@@ -14,14 +18,14 @@ class SimpleServer(object):
     """
 
     def user_auth(self, data_list, conn):
-        with open(conf.db_path, "r", encoding='utf-8') as f:
+        with open(settings.file_path, "r", encoding='utf-8') as f:
             for line in f:
                 if line.strip() == '|'.join(data_list):
                     return True
         return False
 
     def create_home(self, user_home):
-        dir_path = os.path.join(conf.ftp_path, user_home)
+        dir_path = os.path.join(settings.ftp_path, user_home)
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
         os.chdir(dir_path)
@@ -38,7 +42,7 @@ class SimpleServer(object):
             with open(file_name, 'rb') as f:
                 conn.send(f.read())
         except FileNotFoundError:
-            conn.send(bytes(conf.FAIL_CODE, encoding="utf-8"))
+            conn.send(bytes(settings.FAIL_CODE, encoding="utf-8"))
 
     def show_file_list(self, conn):
         cwd = os.getcwd()
@@ -48,7 +52,7 @@ class SimpleServer(object):
 
 def main():
     sever = socket.socket()
-    sever.bind((conf.ip, conf.port))
+    sever.bind((settings.ip, settings.port))
     sever.listen()
     sever_obj = SimpleServer()
     while True:
@@ -56,7 +60,7 @@ def main():
         username = None
         while True:
             try:
-                data = str(conn.recv(conf.size))
+                data = str(conn.recv(settings.size))
             except ConnectionResetError:
                 if username:
                     print("{} {} 异常退出！".format(datetime.now(), username))
@@ -70,9 +74,9 @@ def main():
                     sever_obj.create_home(data_list[1])
                     username = data_list[1]
                     print("{} {} 登陆！".format(datetime.now(), username))
-                    conn.send(bytes(conf.SUCCESS_CODE, encoding='utf-8'))
+                    conn.send(bytes(settings.SUCCESS_CODE, encoding='utf-8'))
                 else:
-                    conn.send(bytes(conf.FAIL_CODE, encoding='utf-8'))
+                    conn.send(bytes(settings.FAIL_CODE, encoding='utf-8'))
             elif data_list[0] == "upload":
                 sever_obj.save_file(data_list[1], data_list[2])
             elif data_list[0] == "download":
