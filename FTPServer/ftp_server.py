@@ -14,7 +14,7 @@ class SimpleServer(object):
     """
 
     def user_auth(self, data_list, conn):
-        with open(conf.db_path, "r", encoding='utf-8') as f:
+        with open(conf.file_path, "r", encoding='utf-8') as f:
             for line in f:
                 if line.strip() == '|'.join(data_list):
                     return True
