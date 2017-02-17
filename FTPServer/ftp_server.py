@@ -18,11 +18,7 @@ class SimpleServer(object):
     """
 
     def user_auth(self, data_list, conn):
-<<<<<<< HEAD
         with open(settings.file_path, "r", encoding='utf-8') as f:
-=======
-        with open(conf.file_path, "r", encoding='utf-8') as f:
->>>>>>> 3af09226973d2825a3fdedf3bddc2269089a7728
             for line in f:
                 if line.strip() == '|'.join(data_list):
                     return True
