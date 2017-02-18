@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-from datetime import datetime
 import os
 import socket
 import sys
@@ -9,6 +8,7 @@ import sys
 BASE_PATH = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_PATH)
 
+from log import logger
 import settings
 
 
@@ -18,11 +18,14 @@ class SimpleServer(object):
     """
 
     def user_auth(self, data_list, conn):
-        with open(settings.file_path, "r", encoding='utf-8') as f:
-            for line in f:
-                if line.strip() == '|'.join(data_list):
-                    return True
-        return False
+        try:
+            with open(settings.file_path, "r", encoding='utf-8') as f:
+                for line in f:
+                    if line.strip() == '|'.join(data_list):
+                        return True
+            return False
+        except FileNotFoundError:
+            logger.error('请先创建用户')
 
     def create_home(self, user_home):
         dir_path = os.path.join(settings.ftp_path, user_home)
@@ -63,17 +66,18 @@ def main():
                 data = str(conn.recv(settings.size))
             except ConnectionResetError:
                 if username:
-                    print("{} {} 异常退出！".format(datetime.now(), username))
+                    logger.warning("{} 异常退出！".format(username))
                 else:
-                    print("{} {} 断开连接！".format(datetime.now(), addr[0]))
+                    logger.warning("{} 异常退出！".format(addr[0]))
                 break
+
             data_list = data[2:-1].split('|')
             if data_list[0] == "login":
                 res = sever_obj.user_auth(data_list[1:], conn)
                 if res:
                     sever_obj.create_home(data_list[1])
                     username = data_list[1]
-                    print("{} {} 登陆！".format(datetime.now(), username))
+                    logger.info("{} 登陆！".format(username))
                     conn.send(bytes(settings.SUCCESS_CODE, encoding='utf-8'))
                 else:
                     conn.send(bytes(settings.FAIL_CODE, encoding='utf-8'))
@@ -84,7 +88,7 @@ def main():
             elif data_list[0] == "ls":
                 sever_obj.show_file_list(conn)
             elif data_list[0] == "quit":
-                print("{} {} 退出！".format(datetime.now(), username))
+                logger.info('%s 退出！' % username)
                 break
 
 
